@@ -14,7 +14,6 @@ public class Factura {
     private Integer numeroFactura;
     private String descripcion;
     private Cliente cliente;
-
     @Inject
     private List<LineaFactura> lineasFactura;
 
