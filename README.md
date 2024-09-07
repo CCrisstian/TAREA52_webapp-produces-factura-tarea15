@@ -57,3 +57,14 @@
     - Usa expresiones JSP y JSTL (<c:forEach>) para iterar sobre la lista de LineaFactura y mostrar los detalles de cada línea en una tabla HTML.
     - Muestra la descripción de la factura, el número de factura y la información del cliente.
     - Actúa como la capa de presentación que se encarga de renderizar los datos que han sido preparados por el servlet.
+
+<h2>Resumen del Flujo</h2>
+
+- <b>Solicitud HTTP</b>: El cliente realiza una solicitud HTTP al servlet `/factura`.
+- <b>Servlet</b> `FacturaController`:
+  - Inyecta y crea una instancia de `Factura` (con cliente y líneas de factura).
+  - Establece el objeto `Factura` como atributo de la solicitud.
+  - Redirige la solicitud a la vista `factura.jsp`.
+- <b>Vista</b> `factura.jsp`:
+  - Muestra los detalles de la factura, incluyendo la descripción, el número de factura, el cliente y las líneas de la factura.
+  - Utiliza JSTL para iterar sobre las líneas de factura y calcular el total para cada línea.
