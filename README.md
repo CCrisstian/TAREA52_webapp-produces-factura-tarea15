@@ -68,3 +68,353 @@
 - <b>Vista</b> `factura.jsp`:
   - Muestra los detalles de la factura, incluyendo la descripción, el número de factura, el cliente y las líneas de la factura.
   - Utiliza JSTL para iterar sobre las líneas de factura y calcular el total para cada línea.
+
+<h1 align="center">Solución del Profesor</h1>
+
+- Clase beans `Cliente`:
+```java
+package org.aguzman.apiservlet.webapp.factura.models;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.RequestScoped;
+
+@RequestScoped
+public class Cliente {
+
+    private String nombre;
+
+    private String apellido;
+
+    @PostConstruct
+    public void inicializar(){
+        nombre = "Andres";
+        apellido = "Guzman";
+    }
+    
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public String getApellido() {
+        return apellido;
+    }
+
+    public void setApellido(String apellido) {
+        this.apellido = apellido;
+    }
+}
+```
+
+- Clase beans `Factura`:
+```java
+package org.aguzman.apiservlet.webapp.factura.models;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import java.util.List;
+
+@Named
+@RequestScoped
+public class Factura {
+
+    @Inject
+    private List<LineaFactura> lineas;
+
+    private Cliente cliente;
+
+    private String descripcion;
+    
+    private Long folio;
+
+    @PostConstruct
+    public void inicializar() {
+        cliente.setNombre(cliente.getNombre().concat(" ").concat("José"));
+        descripcion = "Factura Oficina".concat(" del cliente: ").concat(cliente.getNombre());
+        folio = Math.round( Math.random() * 1000000000)+10;
+    }
+
+    @PreDestroy
+    public void destruir() {
+        System.out.println("Factura destruida: ".concat(descripcion));
+    }
+
+    public List<LineaFactura> getLineas() {
+        return lineas;
+    }
+
+    public void setLineas(List<LineaFactura> lineas) {
+        this.lineas = lineas;
+    }
+
+    public Cliente getCliente() {
+        return cliente;
+    }
+
+    @Inject
+    public void setCliente(Cliente cliente) {
+        this.cliente = cliente;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
+
+    public Long getFolio() {
+        return folio;
+    }
+
+    public void setFolio(Long folio) {
+        this.folio = folio;
+    }
+}
+```
+
+- Clase `LineaFactura`:
+```java
+package org.aguzman.apiservlet.webapp.factura.models;
+
+public class LineaFactura {
+
+    private Producto producto;
+    private Integer cantidad;
+
+    public LineaFactura(Producto producto, Integer cantidad) {
+        this.producto = producto;
+        this.cantidad = cantidad;
+    }
+
+    public Producto getProducto() {
+        return producto;
+    }
+
+    public Integer getCantidad() {
+        return cantidad;
+    }
+
+    public Integer calcularImporte() {
+        return cantidad * producto.getPrecio();
+    }
+}
+```
+
+- Clase `Producto`:
+```java
+package org.aguzman.apiservlet.webapp.factura.models;
+
+public class Producto {
+
+    private String nombre;
+    private Integer precio;
+
+    public Producto(String nombre, Integer precio) {
+        this.nombre = nombre;
+        this.precio = precio;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public Integer getPrecio() {
+        return precio;
+    }
+
+    public void setPrecio(Integer precio) {
+        this.precio = precio;
+    }
+}
+```
+
+- Clase producer CDI `ProducerResources`:
+```java
+package org.aguzman.apiservlet.webapp.factura.configs;
+
+import org.aguzman.apiservlet.webapp.factura.models.Producto;
+import org.aguzman.apiservlet.webapp.factura.models.LineaFactura;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Produces;
+import java.util.Arrays;
+import java.util.List;
+
+@ApplicationScoped
+public class ProducerResources {
+
+    @Produces
+    private List<LineaFactura> beanLineas() {
+        Producto producto1 = new Producto("Monitor LG LCD 24", 250);
+        Producto producto2 = new Producto("Notebook Asus", 500);
+        Producto producto3 = new Producto("Impresora HP Multifuncional", 80);
+        Producto producto4 = new Producto("Escritorio Oficina", 300);
+
+        LineaFactura linea1 = new LineaFactura(producto1, 2);
+        LineaFactura linea2 = new LineaFactura(producto2, 1);
+        LineaFactura linea3 = new LineaFactura(producto3, 3);
+        LineaFactura linea4 = new LineaFactura(producto4, 1);
+
+        return Arrays.asList(linea1, linea2, linea3, linea4);
+    }
+}
+```
+
+- Clase servlet `FacturaController`:
+```java
+package org.aguzman.apiservlet.webapp.factura.controllers;
+
+import jakarta.inject.Inject;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import org.aguzman.apiservlet.webapp.factura.models.Factura;
+
+import java.io.IOException;
+
+@WebServlet({"/factura", "/"})
+public class ProductoServlet extends HttpServlet {
+
+    @Inject
+    private Factura factura;
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+        req.setAttribute("factura", factura);
+        req.setAttribute("title", "Ejemplo Factura con inyección de dependencia");
+
+        getServletContext().getRequestDispatcher("/factura.jsp").forward(req, resp);
+    }
+}
+```
+
+- Vista `factura.jsp`:
+```jsp
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<jsp:include page="layout/header.jsp" />
+
+<h3>${title}</h3>
+
+<ul class="list-group">
+    <li class="list-group-item active">Factura: ${factura.folio}</li>
+    <li class="list-group-item">${factura.descripcion}</li>
+    <li class="list-group-item">${factura.cliente.nombre} ${factura.cliente.apellido}</li>
+</ul>
+
+<table class="table table-hover table-striped">
+    <thead>
+        <tr>
+            <th>Producto</th>
+            <th>Precio</th>
+            <th>Cantidad</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+    <tbody>
+    <c:forEach items="${factura.lineas}" var="linea">
+        <tr>
+            <td>${linea.producto.nombre}</td>
+            <td>${linea.producto.precio}</td>
+            <td>${linea.cantidad}</td>
+            <td>${linea.calcularImporte()}</td>
+        </tr>
+    </c:forEach>
+</tbody>
+</table>
+<jsp:include page="layout/footer.jsp" />
+```
+
+- Archivo `beans.xml`:
+```xml
+<beans xmlns="https://jakarta.ee/xml/ns/jakartaee"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/beans_3_0.xsd"
+       version="3.0" bean-discovery-mode="annotated">
+
+</beans>
+```
+
+- `pom.xml`:
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.aguzman.apiservlet.webapp.producesfactura.tarea15</groupId>
+    <artifactId>webapp-produces-factura-tarea15</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>war</packaging>
+    <properties>
+        <maven.compiler.source>16</maven.compiler.source>
+        <maven.compiler.target>16</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-api</artifactId>
+            <version>9.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.12.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.web</groupId>
+            <artifactId>jakarta.servlet.jsp.jstl</artifactId>
+            <version>2.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.weld.servlet</groupId>
+            <artifactId>weld-servlet-core</artifactId>
+            <version>4.0.1.SP1</version>
+        </dependency>
+    </dependencies>
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.tomcat.maven</groupId>
+                <artifactId>tomcat7-maven-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <url>http://localhost:8080/manager/text</url>
+                    <username>admin</username>
+                    <password>12345</password>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.2.3</version>
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
