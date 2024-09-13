@@ -13,61 +13,43 @@
 
 <h2> Resumen Respuesta</h2>
 
-- Clase `Cliente`
-  - <b>Rol</b>: Representa al cliente que está asociado con una factura.
-  - <b>Contexto CDI</b>: `@RequestScoped`, lo que significa que una nueva instancia de `Cliente` será creada para cada solicitud HTTP.
-  - <b>Propósito</b>:
-    - Contiene información básica del cliente, como nombre, email y apellidos.
-    - Inicializa estos atributos con valores predeterminados usando el método `@PostConstruct`.
-    - Los valores predeterminados se definen para simplificar la configuración inicial en el contexto de una solicitud.
+- `ProducerResources`
+  - <b>Descripción</b>: Es un productor de objetos `LineaFactura`. Utiliza la anotación `@Produces` para crear una lista de objetos `LineaFactura` que se inyectarán en otros componentes de la aplicación cuando se necesite.
+  - <b>Interacción</b>: Esta clase proporciona la lista de líneas de factura que se inyecta en la clase `Factura` mediante CDI. Esto permite la separación de la lógica de creación de los objetos de su consumo.
 
-- Clase `Factura`
-  - <b>Rol</b>: Representa una factura completa, que incluye el cliente y las líneas de factura.
-  - <b>Contexto CDI</b>: `@Named` y `@RequestScoped`.
-  - <b>Propósito</b>:
-    - Contiene un atributo `Cliente` para asociar la factura con un cliente específico.
-    - Contiene una lista de `LineaFactura` que representa las diferentes líneas de productos en la factura.
-    - Inicializa el número de factura y la descripción con valores predeterminados usando el método `@PostConstruct`.
-    - Los atributos numeroFactura y descripcion se configuran por defecto para simplificar la presentación de la factura.
+- `FacturaController`
+  - <b>Descripción</b>: Es un servlet que gestiona las peticiones a las rutas `"/index.html"` y `"/factura"`. Inyecta una instancia de la clase `Factura` usando CDI.
+  - <b>Interacción</b>: El objeto `Factura` se inyecta automáticamente en el servlet. Luego, se envía como atributo al JSP `factura.jsp` para ser mostrado en la interfaz web. Esto permite que los datos de la factura estén disponibles en la vista sin necesidad de crear manualmente la instancia.
 
-- Clase `LineaFactura`
-  - <b>Rol</b>: Representa una línea individual en una factura.
-  - <b>Propósito</b>:
-    - Define los detalles de un producto en la factura, incluyendo el precio, la cantidad y el nombre del producto.
-    - Tiene un método getImporte() que calcula el total para esa línea (cantidad * precio).
+- `Cliente`
+  - <b>Descripción</b>: Representa a un cliente de la factura. Es un componente manejado por CDI con un ciclo de vida `@RequestScoped`, lo que significa que una instancia de `Cliente` se crea por cada solicitud HTTP. Usa la anotación `@Named` para que pueda ser inyectado o referenciado por nombre en otros componentes.
+  - <b>Interacción</b>: La clase `Cliente` se inyecta en la clase `Factura` mediante CDI. El método `@PostConstruct` inicializa los valores del cliente, como el nombre y el correo electrónico. El objeto `Cliente` se utiliza en el JSP para mostrar los detalles del cliente asociado a la factura.
 
-- Clase `ProducerResources`
-  - <b>Rol</b>: Proveedor de recursos CDI.
-  - <b>Contexto CDI</b>: `@ApplicationScoped`, lo que significa que una única instancia de ProducerResources es creada para toda la aplicación.
-  - <b>Propósito</b>:
-    - Produce una lista de `LineaFactura` que se utiliza en el componente Factura.
-    - El método `@Produces` crea instancias de `LineaFactura` con datos de ejemplo y las proporciona a los componentes CDI que lo requieran.
+- `Factura`
+  - <b>Descripción</b>: Representa una factura que contiene un número, descripción, un cliente y una lista de líneas de factura. Esta clase es manejada por CDI y está anotada con `@RequestScoped`, lo que significa que su ciclo de vida es limitado a una sola solicitud.
+  - <b>Interacción</b>:
+    - `Cliente` El objeto `Cliente` se inyecta usando CDI mediante el método `setCliente()`.
+    - `LineasFactura` La lista de `LineaFactura` se inyecta automáticamente desde la clase `ProducerResources`.
+    - Esto permite que los datos necesarios para representar una factura completa (cliente y productos) sean administrados por CDI sin necesidad de lógica adicional en el controlador.
 
-- Servlet `FacturaController`
-  - <b>Rol</b>: Controlador que maneja las solicitudes HTTP relacionadas con la factura.
-  - <b>Propósito</b>:
-    - Inyecta la instancia de `Factura` usando CDI.
-    - Establece la `Factura` como un atributo de la solicitud.
-    - Redirige a la vista `factura.jsp` para mostrar la información de la factura.
-    - El servlet actúa como intermediario entre el modelo (datos) y la vista (presentación).
+- `LineaFactura`
+  - <b>Descripción</b>: Representa una línea de detalle dentro de una factura, con información sobre el producto, precio y cantidad. Incluye un método para calcular el importe total de la línea (cantidad * precio).
+  - <b>Interacción</b>:
+    - Las instancias de `LineaFactura` son producidas por la clase `ProducerResources` y se inyectan en `Factura`.
+    - Estas líneas se muestran en el JSP `factura.jsp` dentro de una tabla que detalla los productos adquiridos en la factura.
 
-- Vista `factura.jsp`
-  - <b>Rol</b>: Página JSP que muestra la información de la factura.
-  - <b>Propósito</b>:
-    - Usa expresiones JSP y JSTL (<c:forEach>) para iterar sobre la lista de LineaFactura y mostrar los detalles de cada línea en una tabla HTML.
-    - Muestra la descripción de la factura, el número de factura y la información del cliente.
-    - Actúa como la capa de presentación que se encarga de renderizar los datos que han sido preparados por el servlet.
+- `factura.jsp`
+  - <b>Descripción</b>: Es el archivo JSP que muestra la información de la factura en la interfaz web. Utiliza etiquetas JSTL para recorrer la lista de líneas de factura y mostrar los detalles de la factura, incluyendo el cliente y los productos comprados.
+  - <b>Interacción</b>: Este archivo JSP recibe los datos inyectados desde el servlet `FacturaController` y los muestra en una tabla HTML. Utiliza la expresión `${factura}` para acceder a los atributos de la factura, cliente y productos.
 
-<h2>Resumen del Flujo</h2>
+- Archivo de configuración CDI (`beans.xml`)
+  - <b>Descripción</b>: Este archivo de configuración habilita CDI en la aplicación. Declara el modo de descubrimiento de beans como `annotated`, lo que significa que solo las clases con anotaciones relevantes de CDI se considerarán como beans administrados.
+  - <b>Interacción</b>: Habilita el uso de CDI en toda la aplicación para que las clases anotadas con `@Inject`, `@Produces`, `@RequestScoped`, etc., puedan ser gestionadas por el contenedor de CDI.
 
-- <b>Solicitud HTTP</b>: El cliente realiza una solicitud HTTP al servlet `/factura`.
-- <b>Servlet</b> `FacturaController`:
-  - Inyecta y crea una instancia de `Factura` (con cliente y líneas de factura).
-  - Establece el objeto `Factura` como atributo de la solicitud.
-  - Redirige la solicitud a la vista `factura.jsp`.
-- <b>Vista</b> `factura.jsp`:
-  - Muestra los detalles de la factura, incluyendo la descripción, el número de factura, el cliente y las líneas de la factura.
-  - Utiliza JSTL para iterar sobre las líneas de factura y calcular el total para cada línea.
+- <b>Interacción General</b>:
+El Productor `ProducerResources` genera una lista de `LineaFactura`, que luego es inyectada en la clase `Factura`. Además, la clase `Factura` también inyecta una instancia de `Cliente`. Estos datos se gestionan de manera eficiente utilizando CDI, lo que reduce el acoplamiento entre clases y permite que las dependencias se manejen de forma automática. Finalmente, el servlet `FacturaController` maneja las solicitudes y pasa los objetos `Factura` al JSP, donde se presentan al usuario los detalles de la factura.
+
+Este uso de CDI asegura que los componentes estén separados y sus dependencias sean gestionadas de forma transparente por el contenedor de la aplicación, promoviendo la reutilización y facilitando el mantenimiento.
 
 <h1 align="center">Solución del Profesor</h1>
 
