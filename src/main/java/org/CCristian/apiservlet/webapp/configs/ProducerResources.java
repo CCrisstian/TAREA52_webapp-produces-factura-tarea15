@@ -3,7 +3,6 @@ package org.CCristian.apiservlet.webapp.configs;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
 import org.CCristian.apiservlet.webapp.models.LineaFactura;
-
 import java.util.Arrays;
 import java.util.List;
 

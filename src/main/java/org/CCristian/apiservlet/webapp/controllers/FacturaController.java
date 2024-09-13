@@ -10,7 +10,7 @@ import org.CCristian.apiservlet.webapp.models.Factura;
 
 import java.io.IOException;
 
-@WebServlet("/factura")
+@WebServlet({"/index.html","/factura"})
 public class FacturaController extends HttpServlet {
     // Inyectar el componente Factura
     @Inject
