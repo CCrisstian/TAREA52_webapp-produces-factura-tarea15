@@ -46,9 +46,10 @@
   - <b>Descripción</b>: Este archivo de configuración habilita CDI en la aplicación. Declara el modo de descubrimiento de beans como `annotated`, lo que significa que solo las clases con anotaciones relevantes de CDI se considerarán como beans administrados.
   - <b>Interacción</b>: Habilita el uso de CDI en toda la aplicación para que las clases anotadas con `@Inject`, `@Produces`, `@RequestScoped`, etc., puedan ser gestionadas por el contenedor de CDI.
 
-- <b>Interacción General</b>:
-El Productor `ProducerResources` genera una lista de `LineaFactura`, que luego es inyectada en la clase `Factura`. Además, la clase `Factura` también inyecta una instancia de `Cliente`. Estos datos se gestionan de manera eficiente utilizando CDI, lo que reduce el acoplamiento entre clases y permite que las dependencias se manejen de forma automática. Finalmente, el servlet `FacturaController` maneja las solicitudes y pasa los objetos `Factura` al JSP, donde se presentan al usuario los detalles de la factura.
 
+<h2>Interacción General</h2>:
+
+El Productor `ProducerResources` genera una lista de `LineaFactura`, que luego es inyectada en la clase `Factura`. Además, la clase `Factura` también inyecta una instancia de `Cliente`. Estos datos se gestionan de manera eficiente utilizando CDI, lo que reduce el acoplamiento entre clases y permite que las dependencias se manejen de forma automática. Finalmente, el servlet `FacturaController` maneja las solicitudes y pasa los objetos `Factura` al JSP, donde se presentan al usuario los detalles de la factura.
 Este uso de CDI asegura que los componentes estén separados y sus dependencias sean gestionadas de forma transparente por el contenedor de la aplicación, promoviendo la reutilización y facilitando el mantenimiento.
 
 <h1 align="center">Solución del Profesor</h1>
